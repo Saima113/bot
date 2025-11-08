@@ -1,5 +1,5 @@
 Flask==3.0.0
-psycopg2-binary==3.1.18
+psycopg2-binary==2.9.11
 python-dotenv==1.0.0
 google-cloud-dialogflow-cx==1.26.0
 requests==2.31.0
@@ -7,5 +7,6 @@ gunicorn==21.2.0
 google-auth==2.23.4
 
 google-cloud-core==2.3.3
+
 
 
