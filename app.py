@@ -6,7 +6,8 @@ Dialogflow CX Webhook Fulfillment with PostgreSQL
 from flask import Flask, request, jsonify
 # import psycopg
 import psycopg2
-from psycopg.rows import dict_row
+# from psycopg.rows import dict_row
+from psycopg2.extras import RealDictCursor
 import os
 from datetime import datetime, timedelta
 import random
@@ -42,7 +43,7 @@ def track_order(order_id):
         return {"error": "Database connection failed"}
     
     try:
-        cursor = conn.cursor(row_factory=dict_row)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
             SELECT o.order_id, o.status, o.order_date, o.estimated_delivery,
                    c.name, c.email, c.phone
@@ -70,7 +71,7 @@ def process_return(order_id, reason):
         return {"error": "Database connection failed"}
     
     try:
-        cursor = conn.cursor(row_factory=dict_row)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         
         # Check if order exists and is eligible for return
         cursor.execute("""
@@ -126,7 +127,7 @@ def search_product(product_name):
         return {"error": "Database connection failed"}
     
     try:
-        cursor = conn.cursor(row_factory=dict_row)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
             SELECT product_id, name, price, stock_quantity, category
             FROM products
@@ -150,7 +151,7 @@ def get_customer_orders(email):
         return {"error": "Database connection failed"}
     
     try:
-        cursor = conn.cursor(row_factory=dict_row)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
             SELECT o.order_id, o.status, o.order_date, o.total_amount
             FROM orders o
