@@ -4,7 +4,8 @@ Dialogflow CX Webhook Fulfillment with PostgreSQL
 """
 
 from flask import Flask, request, jsonify
-import psycopg
+# import psycopg
+import psycopg2
 from psycopg.rows import dict_row
 import os
 from datetime import datetime, timedelta
@@ -27,7 +28,8 @@ DB_CONFIG = {
 def get_db_connection():
     """Create database connection"""
     try:
-        conn = psycopg.connect(**DB_CONFIG)
+        # conn = psycopg.connect(**DB_CONFIG)
+        conn = psycopg2.connect(**DB_CONFIG)
         return conn
     except Exception as e:
         print(f"Database connection error: {e}")
