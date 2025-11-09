@@ -276,6 +276,36 @@ def debug_env():
         "DB_PORT": os.getenv('DB_PORT', 'NOT SET'),
         "DB_PASSWORD": "***" if os.getenv('DB_PASSWORD') else "NOT SET"
     })
+    
+@app.route('/test-db', methods=['GET'])
+def test_db():
+    """Test database connection and query"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Could not connect to database"}), 500
+    
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Test query
+        cursor.execute("SELECT COUNT(*) as count FROM orders;")
+        order_count = cursor.fetchone()
+        
+        cursor.execute("SELECT * FROM orders WHERE order_id = 'ORD12345';")
+        order = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "status": "connected",
+            "total_orders": order_count,
+            "order_ORD12345": dict(order) if order else "Not found"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
