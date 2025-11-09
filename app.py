@@ -266,6 +266,17 @@ def health():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
+@app.route('/debug-env', methods=['GET'])
+def debug_env():
+    """Debug endpoint to check environment variables"""
+    return jsonify({
+        "DB_HOST": os.getenv('DB_HOST', 'NOT SET'),
+        "DB_NAME": os.getenv('DB_NAME', 'NOT SET'),
+        "DB_USER": os.getenv('DB_USER', 'NOT SET'),
+        "DB_PORT": os.getenv('DB_PORT', 'NOT SET'),
+        "DB_PASSWORD": "***" if os.getenv('DB_PASSWORD') else "NOT SET"
+    })
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
