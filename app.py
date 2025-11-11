@@ -305,6 +305,50 @@ def test_db():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/seed-data', methods=['GET'])
+def seed_data():
+    """Add sample data - run once after init-db"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Insert customers
+        cursor.execute("""
+            INSERT INTO customers (name, email, phone) VALUES
+            ('John Doe', 'john@example.com', '+1234567890'),
+            ('Jane Smith', 'jane@example.com', '+1234567891'),
+            ('Bob Wilson', 'bob@example.com', '+1234567892')
+            ON CONFLICT (email) DO NOTHING;
+        """)
+        
+        # Insert products
+        cursor.execute("""
+            INSERT INTO products (name, price, stock_quantity, category) VALUES
+            ('Wireless Headphones', 79.99, 50, 'Electronics'),
+            ('Running Shoes', 89.99, 30, 'Sports'),
+            ('Coffee Maker', 49.99, 20, 'Home');
+        """)
+        
+        # Insert orders
+        cursor.execute("""
+            INSERT INTO orders (order_id, customer_id, status, total_amount, order_date, estimated_delivery) VALUES
+            ('ORD12345', 1, 'shipped', 79.99, NOW() - INTERVAL '2 days', CURRENT_DATE + 3),
+            ('ORD12346', 2, 'delivered', 89.99, NOW() - INTERVAL '5 days', CURRENT_DATE - 1)
+            ON CONFLICT (order_id) DO NOTHING;
+        """)
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({"status": "Sample data added successfully"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
 
 @app.route('/init-db', methods=['GET'])
 def initialize_database():
