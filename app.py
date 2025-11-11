@@ -306,6 +306,71 @@ def test_db():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/init-db', methods=['GET'])
+def initialize_database():
+    """Initialize database - run once"""
+    try:
+        init_db()
+        return jsonify({"status": "Database initialized successfully"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+        
+def init_db():
+    """Initialize database tables"""
+    conn = get_db_connection()
+    if not conn:
+        print("Could not connect to database")
+        return
+    
+    cursor = conn.cursor()
+    
+    # Create tables
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS customers (
+            customer_id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            phone VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            product_id SERIAL PRIMARY KEY,
+            name VARCHAR(200) NOT NULL,
+            price DECIMAL(10, 2) NOT NULL,
+            stock_quantity INTEGER DEFAULT 0,
+            category VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS orders (
+            order_id VARCHAR(20) PRIMARY KEY,
+            customer_id INTEGER REFERENCES customers(customer_id),
+            status VARCHAR(50) NOT NULL,
+            total_amount DECIMAL(10, 2) NOT NULL,
+            order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            estimated_delivery DATE
+        );
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS returns (
+            return_id VARCHAR(20) PRIMARY KEY,
+            order_id VARCHAR(20) REFERENCES orders(order_id),
+            reason TEXT,
+            status VARCHAR(50) NOT NULL,
+            request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("✅ Tables created")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
